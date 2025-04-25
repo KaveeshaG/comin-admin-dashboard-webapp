@@ -17,7 +17,7 @@ spec:
     spec:
       containers:
       - name: comin-admin-dashboard-webapp
-        image: ghcr.io/kaveeshag/comin-admin-dashboard-webapp:d7aed28b628212802c0f77de600143f8cd82b0ba
+        image: ghcr.io/kaveeshag/comin-admin-dashboard-webapp:16c9d0d33eca13258f17ad3e2b290e4e7cfda4cc
         imagePullPolicy: Always
         ports:
         - containerPort: 3000
