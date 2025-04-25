@@ -1,0 +1,18 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: comin-admin-dashboard-webapp-ingress
+  namespace: comin-dev
+spec:
+  ingressClassName: nginx
+  rules:
+  - host: comin.kaveeshagimhana.com
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: comin-admin-dashboard-webapp-service
+            port:
+              number: 80

@@ -1,0 +1,30 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: comin-admin-dashboard-webapp
+  namespace: comin-dev
+  labels:
+    app: comin-admin-dashboard-webapp
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: comin-admin-dashboard-webapp
+  template:
+    metadata:
+      labels:
+        app: comin-admin-dashboard-webapp
+    spec:
+      containers:
+      - name: comin-admin-dashboard-webapp
+        image: ghcr.io/kaveeshag/comin-admin-dashboard-webapp:dev
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 3000
+        resources:
+          limits:
+            cpu: "0.5"
+            memory: "512Mi"
+          requests:
+            cpu: "0.2"
+            memory: "256Mi"
