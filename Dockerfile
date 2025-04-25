@@ -4,6 +4,8 @@ WORKDIR /app
 
 COPY package*.json ./
 
+COPY public/fonts ./public/fonts
+
 RUN npm install --legacy-peer-deps
 
 COPY . .
