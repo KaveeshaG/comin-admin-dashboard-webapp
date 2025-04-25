@@ -28,6 +28,9 @@ const nextConfig: NextConfig = {
     ignoreBuildErrors: true,
   },
   optimizeFonts: false,
+  allowedDevOrigins: [
+    'comin.kaveeshagimhana.com',
+  ],
 };
 
 export default nextConfig;
