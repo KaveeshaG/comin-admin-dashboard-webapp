@@ -7,7 +7,7 @@ import { TimesheetFilters } from "@/components/timesheet/timesheet-filters"
 import { useToast } from "@/components/ui/use-toast"
 import { getTimeEntries, getTimesheetStats } from "@/lib/api/timesheet"
 import { getEmployees } from "@/lib/api/employees"
-import { getDepartments } from "@/lib/api/departments"
+import { listDepartments } from "@/lib/api/departments"
 import { useAuth } from "@/providers/auth-provider"
 import type { TimesheetFilters as Filters } from "@/types/timesheet"
 import type { TimeEntry } from "@/types/timesheet"
@@ -32,7 +32,7 @@ export default function TimesheetPage() {
         getTimeEntries(filters),
         getTimesheetStats(filters.start_date, filters.end_date),
         getEmployees(),
-        getDepartments(user.organizationId),
+        listDepartments(user.organizationId),
       ])
 
       // Create departments map

@@ -8,7 +8,7 @@ import Cookies from "js-cookie"
 
 interface AuthContextType {
   user: AuthUser | null
-  login: (accessToken: string, organizationId: string) => Promise<void>
+  login: (accessToken: string, organizationId: string, role: string) => Promise<void>
   logout: () => void
   isLoading: boolean
 }
@@ -22,38 +22,40 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     if (mounted) {
-      // Check cookies for existing auth data
       const accessToken = Cookies.get("accessToken")
       const organizationId = Cookies.get("organizationId")
+      const role = Cookies.get("role")
 
       if (accessToken && organizationId) {
-        // Sync with localStorage for client-side access
         localStorage.setItem("accessToken", accessToken)
         localStorage.setItem("organizationId", organizationId)
+        localStorage.setItem("role", role)
 
         setUser({
           accessToken,
           organizationId,
           isAuthenticated: true,
+          role
         })
       }
       setIsLoading(false)
     }
   }, [mounted])
 
-  const login = async (accessToken: string, organizationId: string) => {
-    // Set cookies first (these will be used by middleware)
+  const login = async (accessToken: string, organizationId: string, role: string) => {
     Cookies.set("accessToken", accessToken, { path: "/" })
     Cookies.set("organizationId", organizationId, { path: "/" })
+    Cookies.set("role", role, { path: "/" })
 
-    // Then set localStorage for client-side access
     localStorage.setItem("accessToken", accessToken)
     localStorage.setItem("organizationId", organizationId)
+    localStorage.setItem("role", role)
 
     setUser({
       accessToken,
       organizationId,
       isAuthenticated: true,
+      role: role // Set the role value directly from the login response
     })
 
     return Promise.resolve()

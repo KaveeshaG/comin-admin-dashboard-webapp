@@ -32,7 +32,7 @@ export function TeamMembersDialog({ open, onOpenChange, team, departments }: Tea
 
   const loadData = async () => {
     try {
-      const [empData, memberData] = await Promise.all([getEmployees(), getTeamMembers(team.id)])
+      const [empData, memberData] = await Promise.all([getEmployees(), getTeamMembers(team.organization_id, team.id)])
 
       // Combine member data with employee details
       const membersWithDetails = memberData.map((member) => ({
@@ -53,12 +53,12 @@ export function TeamMembersDialog({ open, onOpenChange, team, departments }: Tea
     }
   }
 
-  const handleAddMember = async (data: { user_id: string; role: "member" | "lead" }) => {
+  const handleAddMember = async (data: TeamMember) => {
     try {
-      await createTeamMember(team.id, data)
+      await createTeamMember(team.organization_id ,team.id, data)
       loadData()
     } catch (error) {
-      throw error // Let the form handle the error
+      throw error
     }
   }
 
@@ -103,7 +103,7 @@ export function TeamMembersDialog({ open, onOpenChange, team, departments }: Tea
               employees={employees}
               departments={departments}
               existingMembers={members.map((m) => m.user_id)}
-              onSubmit={handleAddMember}
+              onSubmit={(data: { role: "member" | "lead"; user_id: string; }) => handleAddMember(data as TeamMember)}
             />
           </TabsContent>
         </Tabs>

@@ -9,9 +9,9 @@ import { AttendanceTable } from "@/components/attendance/attendance-table"
 import { AttendanceFilters } from "@/components/attendance/attendance-filters"
 import { getAttendanceStats, getAttendanceRecords, markAttendance } from "@/lib/api/attendance"
 import { getEmployees } from "@/lib/api/employees"
-import { getDepartments } from "@/lib/api/departments"
 import { useAuth } from "@/providers/auth-provider"
 import type { AttendanceFilters as Filters } from "@/types/attendance"
+import { listDepartments } from "@/lib/api/departments"
 
 export default function AttendancePage() {
   const [stats, setStats] = useState(null)
@@ -33,7 +33,7 @@ export default function AttendancePage() {
         getAttendanceStats(),
         getAttendanceRecords(filters),
         getEmployees(),
-        getDepartments(user.organizationId),
+        listDepartments(user.organizationId),
       ])
 
       // Create departments map

@@ -18,13 +18,8 @@ export interface Department {
   id: string
   name: string
   organization_id: string
-}
-
-export interface LeaveType {
-  id: string
-  name: string
-  organization_id: string
-  default_days: number
+  description: string,
+  status: string
 }
 
 export interface CreateEmployeeDto {
@@ -47,4 +42,3 @@ export interface EmployeeFilters {
   work_type?: string
   search?: string
 }
-

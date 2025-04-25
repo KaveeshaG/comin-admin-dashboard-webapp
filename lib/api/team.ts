@@ -1,71 +1,74 @@
 import type { Team, TeamMember, CreateTeamDto, CreateTeamMemberDto } from "@/types/organization"
-import { mockTeams } from "@/lib/mock-data"
+import { mockTeamMembers, mockTeams } from "@/lib/mock-data"
+import { apiClient } from "../utils/api-client"
 
 const API_URL = process.env.AUTH_SERVICE_URL
 
-export async function createTeam(organizationId: string, data: CreateTeamDto): Promise<Team> {
-  // Simulate API call
-  await new Promise((resolve) => setTimeout(resolve, 1000))
-
-  const newTeam: Team = {
-    id: Math.random().toString(36).substring(2, 9),
-    name: data.name,
-    description: data.description,
-    organization_id: organizationId,
-    department_id: data.department_id,
-    lead_id: data.lead_id ?? null,
-    status: "active",
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString(),
-  }
-
-  return newTeam
-}
-
 export async function listTeams(organizationId: string): Promise<Team[]> {
-  // Simulate API call
-  await new Promise((resolve) => setTimeout(resolve, 1000))
+  try {
+    organizationId = '0bd14f74-997d-4384-be62-bb634800c6f8'
 
-  // Return mock data filtered by organization
-  return mockTeams.filter((team) => team.organization_id === organizationId)
-}
+    const path = organizationId
+      ? `/organizations/${organizationId}/teams`
+      : `/organizations`
 
-export async function getTeamMembers(teamId: string): Promise<TeamMember[]> {
-  // Simulate API call
-  await new Promise((resolve) => setTimeout(resolve, 1000))
-
-  // Mock data - replace with actual API call
-  return [
-    {
-      id: "1",
-      team_id: teamId,
-      user_id: "1", // This matches the mock employee ID
-      role: "lead",
-      joined_at: new Date().toISOString(),
-    },
-    {
-      id: "2",
-      team_id: teamId,
-      user_id: "2", // This matches another mock employee ID
-      role: "member",
-      joined_at: new Date().toISOString(),
-    },
-  ]
-}
-
-export async function createTeamMember(teamId: string, data: CreateTeamMemberDto): Promise<TeamMember> {
-  // Simulate API call
-  await new Promise((resolve) => setTimeout(resolve, 1000))
-
-  const newMember: TeamMember = {
-    id: Math.random().toString(36).substring(2, 9),
-    team_id: teamId,
-    user_id: data.user_id,
-    role: data.role,
-    joined_at: new Date().toISOString(),
+    return await apiClient<Team[]>(path, {}, 'organizations')
+  } catch (error) {
+    console.error("Error fetching Teams:", error)
+    return mockTeams
   }
+}
 
-  return newMember
+export async function createTeam(organizationId: string, team: CreateTeamDto): Promise<Team> {
+  try {
+    organizationId = '0bd14f74-997d-4384-be62-bb634800c6f8'
+
+    const path = organizationId
+      ? `/organizations/${organizationId}/teams`
+      : `/organizations`
+
+    return await apiClient<Team>(path, {
+      method: "POST",
+      body: JSON.stringify(team),
+    }, 'organizations')
+  } catch (error) {
+    console.error("Error creating Team:", error)
+    throw error
+  }
+}
+
+export async function getTeamMembers(organizationId: string, teamId: string): Promise<TeamMember[]> {
+  try {
+    const path = organizationId
+      ? `/organizations/${organizationId}/teams/${teamId}/members`
+      : `/organizations`
+
+    return await apiClient<TeamMember[]>(path, {}, 'organizations')
+  } catch (error) {
+    console.error("Error fetching Team Members:", error)
+    return mockTeamMembers
+  }
+}
+
+export async function createTeamMember(organizationId: string, teamId: string, teamMember: CreateTeamMemberDto): Promise<TeamMember> {
+  if (!organizationId || !teamId) {
+    throw new Error("Organization ID and Team ID are required");
+  }
+  
+  try {
+    const path = `/organizations/${organizationId}/teams/${teamId}/members`;
+    
+    return await apiClient<TeamMember>(path, {
+      method: "POST",
+      body: JSON.stringify(teamMember),
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    }, 'organizations');
+  } catch (error) {
+    console.error("Error creating Team member:", error);
+    throw error;
+  }
 }
 
 export async function removeTeamMember(teamId: string, memberId: string): Promise<void> {

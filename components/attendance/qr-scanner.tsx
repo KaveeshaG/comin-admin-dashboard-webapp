@@ -56,7 +56,6 @@ export function QRScanner({ onScan, onError }: QRScannerProps) {
           aspectRatio: 1,
         },
         (decodedText) => {
-          console.log("QR Code detected:", decodedText)
           onScan(decodedText)
           stopScanner()
         },

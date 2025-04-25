@@ -7,11 +7,11 @@ import { Button } from "@/components/ui/button"
 import { EmployeeTable } from "@/components/employees/employee-table"
 import { EmployeeFilters } from "@/components/employees/employee-filters"
 import { getEmployees, deleteEmployee } from "@/lib/api/employees"
-import { getDepartments } from "@/lib/api/departments"
 import type { Employee, EmployeeFilters as Filters } from "@/types/employee"
 import { useToast } from "@/components/ui/use-toast"
 import { useAuth } from "@/providers/auth-provider"
 import { format } from "date-fns"
+import { listDepartments } from "@/lib/api/departments"
 
 const PAGE_SIZE = 10
 
@@ -44,9 +44,9 @@ export default function EmployeesPage() {
   const loadDepartments = useCallback(async () => {
     if (!user?.organizationId) return
     try {
-      const deptList = await getDepartments(user.organizationId)
+      const deptList = await listDepartments(user.organizationId)
       const deptMap = deptList.reduce(
-        (acc, dept) => {
+        (acc: any, dept: any) => {
           acc[dept.id] = dept.name
           return acc
         },
@@ -150,7 +150,6 @@ export default function EmployeesPage() {
   }
 
   const handleExportCsv = () => {
-    // Convert employees to CSV
     const headers = ["Employee ID", "First Name", "Last Name", "Email", "Department", "Work Type", "Hire Date", "Phone"]
 
     const csvData = employees.map((emp) => [

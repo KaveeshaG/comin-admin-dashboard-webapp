@@ -54,7 +54,7 @@ export function TeamMemberTable({ members, onRemove }: TeamMemberTableProps) {
                   {member.role === "lead" ? "Team Lead" : "Member"}
                 </Badge>
               </TableCell>
-              <TableCell>{member.employee?.department_id || "No Department"}</TableCell>
+              <TableCell>{member.employee.department_id || "No Department"}</TableCell>
               <TableCell>{new Date(member.joined_at).toLocaleDateString()}</TableCell>
               <TableCell className="text-right">
                 <Button

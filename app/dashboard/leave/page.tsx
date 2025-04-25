@@ -16,12 +16,12 @@ import { LeaveRequestTable } from "@/components/leave/leave-request-table"
 import { LeaveRequestFilters } from "@/components/leave/leave-request-filters"
 import { useToast } from "@/components/ui/use-toast"
 import { getLeaveRequests, updateLeaveRequest } from "@/lib/api/leave"
-import { getLeaveTypes } from "@/lib/api/leave-types"
+import { getLeaveTypes } from "@/lib/api/leave"
 import { getEmployees } from "@/lib/api/employees"
-import { getDepartments } from "@/lib/api/departments"
+import { listDepartments } from "@/lib/api/departments"
 import { useAuth } from "@/providers/auth-provider"
 import type { LeaveRequest } from "@/types/leave"
-import type { LeaveType } from "@/types/employee"
+import type { LeaveType } from "@/types/leave"
 import type { Employee } from "@/types/employee"
 
 interface LeaveRequestFilters {
@@ -52,10 +52,10 @@ export default function LeavePage() {
 
     try {
       const [requests, types, emps, depts] = await Promise.all([
-        getLeaveRequests(),
+        getLeaveRequests(user.organizationId),
         getLeaveTypes(user.organizationId),
         getEmployees(),
-        getDepartments(user.organizationId),
+        listDepartments(user.organizationId),
       ])
 
       // Create departments map

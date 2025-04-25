@@ -33,7 +33,7 @@ export default function LoginPage() {
     try {
       const response = await login({ email, password })
       if (response.access_token && response.organization_id) {
-        await setAuth(response.access_token, response.organization_id)
+        await setAuth(response.access_token, response.organization_id, response.role)
         router.replace("/dashboard")
         router.refresh()
       } else {
