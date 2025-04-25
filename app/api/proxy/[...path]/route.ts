@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from "next/server";
-
 type ServiceName = 'auth' | 'organizations' | 'employees' | 'leaves';
 
 const SERVICE_MAPPINGS: Record<ServiceName, string> = {

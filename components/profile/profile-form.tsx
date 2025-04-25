@@ -10,7 +10,7 @@ import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { getUserProfile } from "@/lib/api/profile"
-import { getDepartments } from "@/lib/api/departments"
+import { listDepartments } from "@/lib/api/departments"
 import type { UpdateProfileDto } from "@/types/profile"
 
 const profileSchema = z.object({
@@ -48,7 +48,7 @@ export function ProfileForm({ onSubmit, isLoading }: ProfileFormProps) {
     try {
       const [profile, depts] = await Promise.all([
         getUserProfile(),
-        getDepartments("0bd14f74-997d-4384-be62-bb634800c6f8"), // Replace with actual org ID
+        listDepartments("0bd14f74-997d-4384-be62-bb634800c6f8"), // Replace with actual org ID
       ])
 
       form.reset({
