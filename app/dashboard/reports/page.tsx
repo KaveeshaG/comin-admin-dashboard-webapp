@@ -8,7 +8,7 @@ import { AttendanceReport } from "@/components/reports/attendance-report"
 import { LeaveReport } from "@/components/reports/leave-report"
 import { CostReport } from "@/components/reports/cost-report"
 import { getEmployeeMetrics, getAttendanceMetrics, getLeaveMetrics, getCostMetrics } from "@/lib/api/reports"
-import { getDepartments } from "@/lib/api/departments"
+import { listDepartments } from "@/lib/api/departments"
 import { useAuth } from "@/providers/auth-provider"
 import { exportToCSV, exportToPDF } from "@/lib/utils/export-utils"
 import { ExportDropdown } from "@/components/timesheet/export-dropdown"
@@ -30,7 +30,7 @@ export default function ReportsPage() {
 
     try {
       setIsLoading(true)
-      const [deptsData, metricsData] = await Promise.all([getDepartments(user.organizationId), getReportData(filters)])
+      const [deptsData, metricsData] = await Promise.all([listDepartments(user.organizationId), getReportData(filters)])
 
       // Create departments map
       const deptsMap = deptsData.reduce(
