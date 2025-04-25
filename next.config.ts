@@ -27,6 +27,7 @@ const nextConfig: NextConfig = {
   typescript: {
     ignoreBuildErrors: true,
   },
+  optimizeFonts: false,
 };
 
 export default nextConfig;
