@@ -19,7 +19,7 @@ const mockLeaveBalances: LeaveBalance[] = [
 
 export async function getLeaveRequests(organizationId: string): Promise<LeaveRequest[]> {
   try {
-    const path = organizationId ? `/organizations/${organizationId}/leave-requests` : `/organizations`
+    const path = organizationId ? `/leaves/organizations/${organizationId}/leave-requests` : `/organizations`
     return await apiClient<LeaveRequest[]>(path, {}, 'leaves')
   } catch (error) {
     console.error("Error retreving Leave Requests:", error)
@@ -34,7 +34,7 @@ export async function getLeaveBalances(employee_id: string): Promise<LeaveBalanc
 
 export async function createLeaveRequest(organizationId: string, request: CreateLeaveRequestDto): Promise<LeaveRequest> {
   try {
-    const path = organizationId ? `/organizations/${organizationId}/leave-requests` : `/organiaztions`
+    const path = organizationId ? `/leaves/organizations/${organizationId}/leave-requests` : `/organiaztions`
     return await apiClient<LeaveRequest>(path, {
       method: "POST",
       body: JSON.stringify(request),
@@ -67,7 +67,7 @@ export async function getLeaveTypes(organizationId: string): Promise<LeaveType[]
     organizationId = '0bd14f74-997d-4384-be62-bb634800c6f8'
 
     const path = organizationId
-      ? `/organizations/${organizationId}/leave-types`
+      ? `/leaves/organizations/${organizationId}/leave-types`
       : `/organizations`
 
     return await apiClient<LeaveType[]>(path, {}, 'leaves')
