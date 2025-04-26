@@ -18,8 +18,8 @@ const nextConfig: NextConfig = {
   async rewrites() {
     return [
       {
-        source: '/api/v1/auth/:path*',
-        destination: `${process.env.AUTH_SERVICE_URL || 'https://comin.kaveeshagimhana.com'}/api/v1/auth/:path*`,
+        source: '/api/v1/:path*',
+        destination: `${process.env.AUTH_SERVICE_URL || 'https://comin.kaveeshagimhana.com'}/api/v1/:path*`,
       },
     ]
   },
