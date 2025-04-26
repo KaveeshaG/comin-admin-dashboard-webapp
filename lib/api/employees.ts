@@ -8,7 +8,7 @@ export async function getEmployees(organizationId?: string): Promise<Employee[]>
     organizationId = '0bd14f74-997d-4384-be62-bb634800c6f8'
 
     const path = organizationId
-      ? `/organizations/${organizationId}/employees`
+      ? `employees/organizations/${organizationId}/employees`
       : `/employees`
 
     return await apiClient<Employee[]>(path, {}, 'employees')
