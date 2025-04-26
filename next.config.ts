@@ -1,5 +1,5 @@
 import type { NextConfig } from "next";
-/** @type {import('next').NextConfig} */
+
 const nextConfig: NextConfig = {
   async headers() {
     return [
@@ -24,10 +24,6 @@ const nextConfig: NextConfig = {
     ]
   },
 
-  typescript: {
-    ignoreBuildErrors: true,
-  },
-  optimizeFonts: false,
   allowedDevOrigins: [
     'comin.kaveeshagimhana.com',
   ],
