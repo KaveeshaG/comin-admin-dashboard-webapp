@@ -61,19 +61,55 @@ async function handleRequest(
     });
 
     const data = await response.text();
+    
+    // Check if the response is empty
+    if (!data || data.trim() === '') {
+      return NextResponse.json(
+        {},
+        {
+          status: response.status,
+          headers: {
+            'Access-Control-Allow-Origin': request.headers.get('origin') || '*',
+            'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+            'Access-Control-Allow-Headers': 'Content-Type, Authorization, x-tenant-id',
+            'Access-Control-Allow-Credentials': 'true',
+          },
+        }
+      );
+    }
 
-    return NextResponse.json(
-      JSON.parse(data),
-      {
+    try {
+      // Try to parse the data as JSON
+      const parsedData = JSON.parse(data.trim());
+      
+      return NextResponse.json(
+        parsedData,
+        {
+          status: response.status,
+          headers: {
+            'Access-Control-Allow-Origin': request.headers.get('origin') || '*',
+            'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+            'Access-Control-Allow-Headers': 'Content-Type, Authorization, x-tenant-id',
+            'Access-Control-Allow-Credentials': 'true',
+          },
+        }
+      );
+    } catch (parseError) {
+      console.error('JSON parse error:', parseError);
+      console.error('Raw response data:', data);
+      
+      // If we can't parse the data as JSON, return it as text
+      return new NextResponse(data, {
         status: response.status,
         headers: {
+          'Content-Type': 'text/plain',
           'Access-Control-Allow-Origin': request.headers.get('origin') || '*',
           'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
           'Access-Control-Allow-Headers': 'Content-Type, Authorization, x-tenant-id',
           'Access-Control-Allow-Credentials': 'true',
         },
-      }
-    );
+      });
+    }
   } catch (error) {
     console.error(`Error proxying request to ${apiUrl}:`, error);
     return NextResponse.json(
