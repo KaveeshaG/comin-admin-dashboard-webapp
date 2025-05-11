@@ -1,13 +1,15 @@
 // api-client.ts
-type ServiceName = 'auth' | 'organizations' | 'employees' | 'leaves';
-
+type ServiceName = 'auth' | 'organizations' | 'employees' | 'leaves' | 'time';
+ 
 const SERVICE_MAPPINGS: Record<ServiceName, string> = {
     auth: 'https://comin.kaveeshagimhana.com',
     organizations: 'https://comin.kaveeshagimhana.com',
     employees: 'https://comin.kaveeshagimhana.com',
-    leaves: 'https://comin.kaveeshagimhana.com'
+    // leaves: 'https://comin.kaveeshagimhana.com',
+    leaves: 'http://localhost:8083',
+    time: 'https://comin.kaveeshagimhana.com'
 };
-
+ 
 export async function apiClient<T>(
     endpoint: string,
     options: RequestInit = {},
@@ -16,11 +18,11 @@ export async function apiClient<T>(
     const formattedEndpoint = endpoint.startsWith('/') ? endpoint : `/${endpoint}`;
     
     const url = `/api/proxy/${serviceName}${formattedEndpoint}`;
-
+ 
     const defaultHeaders = {
         "Content-Type": "application/json",
     };
-
+ 
     try {
         const response = await fetch(url, {
             ...options,
@@ -30,7 +32,7 @@ export async function apiClient<T>(
                 ...options.headers,
             },
         });
-
+ 
         if (!response.ok) {
             // Try to parse error response as JSON first
             let errorData;
@@ -59,7 +61,7 @@ export async function apiClient<T>(
                 throw new Error(`API request failed with status ${response.status}: ${errorText}`);
             }
         }
-
+ 
         // Handle potential JSON parsing issues
         const text = await response.text();
         

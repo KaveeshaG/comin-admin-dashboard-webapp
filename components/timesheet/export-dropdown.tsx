@@ -1,13 +1,15 @@
+"use client"
+ 
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { Button } from "@/components/ui/button"
 import { Download, FileDown, FileIcon as FilePdf } from "lucide-react"
-
+ 
 interface ExportDropdownProps {
   onExportCSV: () => void
   onExportPDF: () => void
   isExporting: boolean
 }
-
+ 
 export function ExportDropdown({ onExportCSV, onExportPDF, isExporting }: ExportDropdownProps) {
   return (
     <DropdownMenu>
@@ -30,4 +32,3 @@ export function ExportDropdown({ onExportCSV, onExportPDF, isExporting }: Export
     </DropdownMenu>
   )
 }
-

@@ -1,5 +1,5 @@
 "use client"
-
+ 
 import { useState, useEffect, useCallback } from "react"
 import { TimesheetStats } from "@/components/timesheet/timesheet-stats"
 import { TimesheetTable } from "@/components/timesheet/timesheet-table"
@@ -13,7 +13,7 @@ import type { TimesheetFilters as Filters } from "@/types/timesheet"
 import type { TimeEntry } from "@/types/timesheet"
 import { ExportDropdown } from "@/components/timesheet/export-dropdown"
 import { exportToCSV, exportToPDF } from "@/lib/utils/export-utils"
-
+ 
 export default function TimesheetPage() {
   const [entries, setEntries] = useState<TimeEntry[]>([])
   const [stats, setStats] = useState(null)
@@ -23,10 +23,10 @@ export default function TimesheetPage() {
   const [isLoading, setIsLoading] = useState(true)
   const { toast } = useToast()
   const { user } = useAuth()
-
+ 
   const loadData = useCallback(async () => {
     if (!user?.organizationId) return
-
+ 
     try {
       const [entriesData, statsData, empsData, deptsData] = await Promise.all([
         getTimeEntries(filters),
@@ -34,7 +34,7 @@ export default function TimesheetPage() {
         getEmployees(),
         listDepartments(user.organizationId),
       ])
-
+ 
       // Create departments map
       const deptsMap = deptsData.reduce(
         (acc, dept) => {
@@ -43,12 +43,13 @@ export default function TimesheetPage() {
         },
         {} as { [key: string]: string },
       )
-
+ 
       setEntries(entriesData)
       setStats(statsData)
       setEmployees(empsData)
       setDepartments(deptsMap)
     } catch (error) {
+      console.error("Error loading timesheet data:", error)
       toast({
         title: "Error",
         description: "Failed to load timesheet data",
@@ -58,18 +59,27 @@ export default function TimesheetPage() {
       setIsLoading(false)
     }
   }, [filters, user?.organizationId, toast])
-
+ 
   useEffect(() => {
     loadData()
   }, [loadData])
-
+ 
   const [isExporting, setIsExporting] = useState(false)
-
+ 
   const handleExportCSV = async () => {
     try {
       setIsExporting(true)
-      const csvData = exportToCSV(entries)
-
+ 
+      // Validate entries data
+      if (!entries || entries.length === 0) {
+        throw new Error("No timesheet data to export")
+      }
+ 
+      console.log("Exporting CSV with entries:", entries.length)
+ 
+      // Generate CSV data
+      const csvData = exportToCSV(entries, "timesheet")
+ 
       // Create and trigger download
       const blob = new Blob([csvData], { type: "text/csv;charset=utf-8;" })
       const link = document.createElement("a")
@@ -79,45 +89,57 @@ export default function TimesheetPage() {
       document.body.appendChild(link)
       link.click()
       document.body.removeChild(link)
-
+ 
       toast({
         title: "Success",
         description: "Timesheet data exported as CSV successfully",
       })
     } catch (error) {
+      console.error("Error exporting CSV:", error)
       toast({
         title: "Error",
-        description: "Failed to export timesheet data",
+        description: error instanceof Error ? error.message : "Failed to export timesheet data",
         variant: "destructive",
       })
     } finally {
       setIsExporting(false)
     }
   }
-
+ 
   const handleExportPDF = async () => {
     try {
       setIsExporting(true)
-      exportToPDF(entries, departments)
+ 
+      // Validate entries data
+      if (!entries || entries.length === 0) {
+        throw new Error("No timesheet data to export")
+      }
+ 
+      console.log("Exporting PDF with entries:", entries.length)
+ 
+      // Generate PDF
+      exportToPDF(entries, "timesheet")
+ 
       toast({
         title: "Success",
         description: "Timesheet data exported as PDF successfully",
       })
     } catch (error) {
+      console.error("Error exporting PDF:", error)
       toast({
         title: "Error",
-        description: "Failed to export timesheet data",
+        description: error instanceof Error ? error.message : "Failed to export timesheet data",
         variant: "destructive",
       })
     } finally {
       setIsExporting(false)
     }
   }
-
+ 
   if (isLoading) {
     return <div>Loading...</div>
   }
-
+ 
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -127,13 +149,13 @@ export default function TimesheetPage() {
         </div>
         <ExportDropdown onExportCSV={handleExportCSV} onExportPDF={handleExportPDF} isExporting={isExporting} />
       </div>
-
+ 
       {stats && <TimesheetStats stats={stats} />}
-
+ 
       <TimesheetFilters filters={filters} onFilterChange={setFilters} employees={employees} departments={departments} />
-
+ 
       <TimesheetTable entries={entries} departments={departments} />
     </div>
   )
 }
-
+ 
