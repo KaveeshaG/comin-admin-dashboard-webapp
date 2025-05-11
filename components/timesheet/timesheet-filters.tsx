@@ -1,19 +1,19 @@
 "use client"
-
+ 
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { DatePicker } from "@/components/ui/date-picker"
 import { EmployeeCombobox } from "@/components/employees/employee-combobox"
 import type { TimesheetFilters } from "@/types/timesheet"
 import type { Employee } from "@/types/employee"
-
+ 
 interface TimesheetFiltersProps {
   filters: TimesheetFilters
   onFilterChange: (filters: TimesheetFilters) => void
   employees: Employee[]
   departments: { [key: string]: string }
 }
-
+ 
 export function TimesheetFilters({ filters, onFilterChange, employees, departments }: TimesheetFiltersProps) {
   return (
     <div className="flex flex-col gap-4 md:flex-row md:items-end">
@@ -91,4 +91,3 @@ export function TimesheetFilters({ filters, onFilterChange, employees, departmen
     </div>
   )
 }
-
