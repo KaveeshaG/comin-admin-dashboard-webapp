@@ -1,7 +1,7 @@
 "use client"
 
 import * as React from "react"
-import { Check, ChevronsUpDown } from "lucide-react"
+import { ChevronsUpDown } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command"
@@ -20,7 +20,6 @@ export function EmployeeCombobox({ employees, value, onValueChange, departments 
   const [open, setOpen] = React.useState(false)
   const [searchQuery, setSearchQuery] = React.useState("")
 
-  // Group employees by department
   const groupedEmployees = React.useMemo(() => {
     return employees.reduce(
       (acc, employee) => {
@@ -35,7 +34,6 @@ export function EmployeeCombobox({ employees, value, onValueChange, departments 
     )
   }, [employees, departments])
 
-  // Filter employees based on search query
   const filterEmployees = (query: string) => {
     const searchTerms = query.toLowerCase().split(" ")
     return (employee: Employee) => {
@@ -58,7 +56,7 @@ export function EmployeeCombobox({ employees, value, onValueChange, departments 
           ) : (
             "Select employee..."
           )}
-          <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+          <ChevronsUpDown className="ml-2 h-4 w-4" />
         </Button>
       </PopoverTrigger>
       <PopoverContent className="w-[400px] p-0">
@@ -82,14 +80,15 @@ export function EmployeeCombobox({ employees, value, onValueChange, departments 
                           setOpen(false)
                         }}
                       >
-                        <Check className={cn("mr-2 h-4 w-4", value === employee.id ? "opacity-100" : "opacity-0")} />
-                        <div className="flex flex-col">
-                          <span>
-                            {employee.first_name} {employee.last_name}
-                          </span>
-                          <span className="text-xs text-muted-foreground">
-                            {employee.employee_id} • {employee.email}
-                          </span>
+                        <div className="options cursor-pointer">
+                          <div className="flex flex-col">
+                            <span>
+                              {employee.first_name} {employee.last_name}
+                            </span>
+                            <span className="text-xs">
+                              {employee.employee_id} • {employee.email}
+                            </span>
+                          </div>
                         </div>
                       </CommandItem>
                     ))}

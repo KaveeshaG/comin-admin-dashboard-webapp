@@ -2,6 +2,8 @@
 
 import * as React from "react"
 import { CaretSortIcon, CheckIcon } from "@radix-ui/react-icons"
+import { Loader2 } from "lucide-react"
+
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command"
@@ -15,12 +17,14 @@ interface TenantSwitcherProps extends PopoverTriggerProps {}
 
 export function TenantSwitcher({ className }: TenantSwitcherProps) {
   const [open, setOpen] = React.useState(false)
-  const { currentTenant, availableTenants, setCurrentTenant } = useTenantContext()
+  const { currentTenant, availableTenants, setCurrentTenant, isLoading } = useTenantContext()
   const { toast } = useToast()
 
-  const handleTenantSwitch = async (tenant: { id: string; name: string }) => {
+  const handleTenantSwitch = async (tenant: typeof currentTenant) => {
+    if (!tenant) return
+
     try {
-      setCurrentTenant(tenant)
+      await setCurrentTenant(tenant)
       setOpen(false)
       toast({
         title: "Organization Switched",
@@ -33,6 +37,18 @@ export function TenantSwitcher({ className }: TenantSwitcherProps) {
         variant: "destructive",
       })
     }
+  }
+
+  if (isLoading) {
+    return (
+      <Button
+        variant="outline"
+        className={cn("w-full justify-start border-border/10 bg-sidebar-accent text-sidebar-foreground", className)}
+      >
+        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+        Loading...
+      </Button>
+    )
   }
 
   return (
@@ -58,7 +74,7 @@ export function TenantSwitcher({ className }: TenantSwitcherProps) {
           <CommandList>
             <CommandEmpty>No organization found.</CommandEmpty>
             <CommandGroup>
-              {availableTenants.map((tenant) => (
+              {availableTenants?.map((tenant) => (
                 <CommandItem key={tenant.id} onSelect={() => handleTenantSwitch(tenant)} className="text-sm">
                   {tenant.name}
                   <CheckIcon

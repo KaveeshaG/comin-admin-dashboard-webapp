@@ -1,32 +1,39 @@
-import type { Department } from "@/types/employee"
+import type { Department, CreateDepartmentDto } from "@/types/organization"
+import { mockDepartments } from "@/lib/mock-data"
+import { apiClient } from "../utils/api-client"
 
-// Mock data - replace with actual API calls later
-const mockDepartments: Department[] = [
-  {
-    id: "00b8f868-690c-4497-8413-8123e4e92287",
-    name: "Engineering",
-    organization_id: "0bd14f74-997d-4384-be62-bb634800c6f8",
-  },
-  {
-    id: "2",
-    name: "Human Resources",
-    organization_id: "0bd14f74-997d-4384-be62-bb634800c6f8",
-  },
-  {
-    id: "3",
-    name: "Marketing",
-    organization_id: "0bd14f74-997d-4384-be62-bb634800c6f8",
-  },
-  {
-    id: "4",
-    name: "Sales",
-    organization_id: "0bd14f74-997d-4384-be62-bb634800c6f8",
-  },
-]
+const API_URL = process.env.AUTH_SERVICE_URL
 
-export async function getDepartments(organizationId: string): Promise<Department[]> {
-  // Simulate API call
-  await new Promise((resolve) => setTimeout(resolve, 500))
-  return mockDepartments.filter((dept) => dept.organization_id === organizationId)
+export async function listDepartments(organizationId: string): Promise<Department[]> {
+  try {
+    organizationId = '0bd14f74-997d-4384-be62-bb634800c6f8'
+
+    const path = organizationId
+      ? `/organizations/${organizationId}/departments`
+      : `/organizations`
+
+    return await apiClient<Department[]>(path, {}, 'organizations')
+  } catch (error) {
+    console.error("Error fetching departments:", error)
+    return mockDepartments
+  }
+}
+
+export async function createDepartment(organizationId: string, department: CreateDepartmentDto): Promise<Department> {
+  try {
+    organizationId = '0bd14f74-997d-4384-be62-bb634800c6f8'
+    
+    const path = organizationId
+    ? `/organizations/${organizationId}/departments`
+    : `/organizations`
+
+    return await apiClient<Department>(path, {
+      method: "POST",
+      body: JSON.stringify(department),
+    }, 'organizations')
+  } catch (error) {
+    console.error("Error creating Organization:", error)
+    throw error
+  }
 }
 

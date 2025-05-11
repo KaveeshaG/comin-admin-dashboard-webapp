@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { format } from "date-fns"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Button } from "@/components/ui/button"
@@ -9,6 +9,8 @@ import { Checkbox } from "@/components/ui/checkbox"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { CheckCircle2, XCircle } from "lucide-react"
 import type { LeaveRequest } from "@/types/leave"
+import { Employee } from "@/types/employee"
+import { getEmployee } from "@/lib/api/employees"
 
 interface LeaveRequestTableProps {
   requests: LeaveRequest[]
@@ -29,6 +31,40 @@ export function LeaveRequestTable({
 }: LeaveRequestTableProps) {
   const [loading, setLoading] = useState<string | null>(null)
   const [selectedRequests, setSelectedRequests] = useState<Set<string>>(new Set())
+  const [employeeData, setEmployeeData] = useState<Record<string, Employee>>({})
+  const [loadingEmployees, setLoadingEmployees] = useState(true)
+
+  // Fetch employee data for all requests
+  useEffect(() => {
+    const fetchEmployeeData = async () => {
+      setLoadingEmployees(true)
+      try {
+        const employeeMap: Record<string, Employee> = {}
+        const employeeIds = [...new Set(requests.map(request =>
+          typeof request.employee_id === 'string' ? request.employee_id : request.employee_id
+        ))].filter(Boolean)
+        
+        await Promise.all(employeeIds.map(async (employeeId) => {
+          if (employeeId) {
+            const employee = await getEmployee(employeeId)
+            if (employee) {
+              employeeMap[employeeId] = employee
+            }
+          }
+        }))
+        
+        setEmployeeData(employeeMap)
+      } catch (error) {
+        console.error("Error fetching employee data:", error)
+      } finally {
+        setLoadingEmployees(false)
+      }
+    }
+
+    if (requests.length > 0) {
+      fetchEmployeeData()
+    }
+  }, [requests])
 
   const getStatusBadge = (status: LeaveRequest["status"]) => {
     switch (status) {
@@ -73,8 +109,18 @@ export function LeaveRequestTable({
     setSelectedRequests(newSelected)
   }
 
+  // Helper function to get employee data
+  const getEmployeeInfo = (request: LeaveRequest) => {
+    const employeeId = typeof request.employee_id === 'string' ? request.employee_id : request.employee_id
+    return employeeId ? employeeData[employeeId] : null
+  }
+
   const pendingRequests = requests.filter((r) => r.status === "pending")
   const showBulkActions = selectedRequests.size > 0
+
+  if (loadingEmployees) {
+    return <div>Loading employee data...</div>
+  }
 
   return (
     <>
@@ -114,84 +160,86 @@ export function LeaveRequestTable({
             </TableRow>
           </TableHeader>
           <TableBody>
-            {requests.map((request) => (
-              <TableRow key={request.id}>
-                {isManager && (
+            {requests.map((request) => {
+              const employee = getEmployeeInfo(request)
+              
+              return (
+                <TableRow key={request.id}>
+                  {isManager && (
+                    <TableCell>
+                      {request.status === "pending" && (
+                        <Checkbox
+                          checked={selectedRequests.has(request.id)}
+                          onCheckedChange={() => toggleRequest(request.id)}
+                          aria-label={`Select request from ${employee?.first_name || 'employee'}`}
+                        />
+                      )}
+                    </TableCell>
+                  )}
                   <TableCell>
-                    {request.status === "pending" && (
-                      <Checkbox
-                        checked={selectedRequests.has(request.id)}
-                        onCheckedChange={() => toggleRequest(request.id)}
-                        aria-label={`Select request from ${request.employee.first_name}`}
-                      />
-                    )}
-                  </TableCell>
-                )}
-                <TableCell>
-                  <div className="flex items-center gap-3">
-                    <Avatar className="h-8 w-8">
-                      <AvatarImage
-                        src={request.employee.avatar}
-                        alt={`${request.employee.first_name} ${request.employee.last_name}`}
-                      />
-                      <AvatarFallback>
-                        {request.employee.first_name[0]}
-                        {request.employee.last_name[0]}
-                      </AvatarFallback>
-                    </Avatar>
-                    <div>
-                      <div className="font-medium">
-                        {request.employee.first_name} {request.employee.last_name}
+                    <div className="flex items-center gap-3">
+                      <Avatar className="h-8 w-8">
+                        <AvatarImage
+                          src={employee?.avatar}
+                          alt={employee ? `${employee.first_name} ${employee.last_name}` : 'Employee'}
+                        />
+                        <AvatarFallback>
+                          {employee ? `${employee.first_name[0]}${employee.last_name[0]}` : 'E'}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div>
+                        <div className="font-medium">
+                          {employee ? `${employee.first_name} ${employee.last_name}` : 'Loading...'}
+                        </div>
                       </div>
                     </div>
-                  </div>
-                </TableCell>
-                <TableCell>Annual Leave</TableCell>
-                <TableCell>
-                  <div className="space-y-1">
-                    <div className="text-sm">{format(new Date(request.start_date), "MMM d, yyyy")}</div>
-                    <div className="text-sm text-muted-foreground">
-                      to {format(new Date(request.end_date), "MMM d, yyyy")}
-                    </div>
-                  </div>
-                </TableCell>
-                <TableCell>{request.days}</TableCell>
-                <TableCell>{getStatusBadge(request.status)}</TableCell>
-                <TableCell>{request.reason}</TableCell>
-                {isManager && (
-                  <TableCell className="text-right">
-                    {request.status === "pending" && (
-                      <div className="flex justify-end gap-2">
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          className="text-green-600"
-                          onClick={() => handleAction(request, "approve")}
-                          disabled={loading === request.id}
-                        >
-                          <CheckCircle2 className="mr-2 h-4 w-4" />
-                          Approve
-                        </Button>
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          className="text-red-600"
-                          onClick={() => handleAction(request, "reject")}
-                          disabled={loading === request.id}
-                        >
-                          <XCircle className="mr-2 h-4 w-4" />
-                          Reject
-                        </Button>
-                      </div>
-                    )}
                   </TableCell>
-                )}
-              </TableRow>
-            ))}
+                  <TableCell>Annual Leave</TableCell>
+                  <TableCell>
+                    <div className="space-y-1">
+                      <div className="text-sm">{format(new Date(request.start_date), "MMM d, yyyy")}</div>
+                      <div className="text-sm text-muted-foreground">
+                        to {format(new Date(request.end_date), "MMM d, yyyy")}
+                      </div>
+                    </div>
+                  </TableCell>
+                  <TableCell>{request.days}</TableCell>
+                  <TableCell>{getStatusBadge(request.status)}</TableCell>
+                  <TableCell>{request.reason}</TableCell>
+                  {isManager && (
+                    <TableCell className="text-right">
+                      {request.status === "pending" && (
+                        <div className="flex justify-end gap-2">
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="text-green-600"
+                            onClick={() => handleAction(request, "approve")}
+                            disabled={loading === request.id}
+                          >
+                            <CheckCircle2 className="mr-2 h-4 w-4" />
+                            Approve
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="text-red-600"
+                            onClick={() => handleAction(request, "reject")}
+                            disabled={loading === request.id}
+                          >
+                            <XCircle className="mr-2 h-4 w-4" />
+                            Reject
+                          </Button>
+                        </div>
+                      )}
+                    </TableCell>
+                  )}
+                </TableRow>
+              )
+            })}
           </TableBody>
         </Table>
       </div>
     </>
   )
 }
-

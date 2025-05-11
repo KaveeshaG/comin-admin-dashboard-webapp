@@ -21,7 +21,7 @@ import { DepartmentTable } from "@/components/organization/department-table"
 import { TeamTable } from "@/components/organization/team-table"
 import { useAuth } from "@/providers/auth-provider"
 import { listOrganizations, createOrganization } from "@/lib/api/organization"
-import { listDepartments, createDepartment } from "@/lib/api/department"
+import { listDepartments, createDepartment } from "@/lib/api/departments"
 import { listTeams, createTeam } from "@/lib/api/team"
 import type {
   Organization,

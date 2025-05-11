@@ -16,10 +16,11 @@ import { Calendar } from "@/components/ui/calendar"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { useToast } from "@/components/ui/use-toast"
 import { createEmployee, updateEmployee } from "@/lib/api/employees"
-import { getDepartments } from "@/lib/api/departments"
-import { getLeaveTypes } from "@/lib/api/leave-types"
+import { getLeaveTypes } from "@/lib/api/leave"
 import { useAuth } from "@/providers/auth-provider"
-import type { Employee, Department, LeaveType } from "@/types/employee"
+import type { Employee, Department } from "@/types/employee"
+import type { LeaveType } from "@/types/leave"
+import { listDepartments } from "@/lib/api/departments"
 
 const employeeSchema = z.object({
   organization_id: z.string(),
@@ -76,9 +77,7 @@ export function EmployeeForm({ employee }: EmployeeFormProps) {
 
   useEffect(() => {
     if (user?.organizationId) {
-      // Load departments
-      getDepartments(user.organizationId).then(setDepartments)
-      // Load leave types
+      listDepartments(user.organizationId).then(setDepartments)
       getLeaveTypes(user.organizationId).then(setLeaveTypes)
     }
   }, [user?.organizationId])

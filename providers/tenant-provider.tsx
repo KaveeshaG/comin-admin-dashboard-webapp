@@ -2,38 +2,74 @@
 
 import type React from "react"
 
-import { createContext, useContext, useState } from "react"
-
-interface Tenant {
-  id: string
-  name: string
-  domain?: string
-}
+import { createContext, useContext, useState, useEffect } from "react"
+import { useRouter } from "next/navigation"
+import type { Organization } from "@/types/organization"
+import { mockOrganizations } from "@/lib/mock-data" // Import mock data
 
 interface TenantContextType {
-  currentTenant: Tenant | null
-  availableTenants: Tenant[]
-  setCurrentTenant: (tenant: Tenant) => void
+  currentTenant: Organization | null
+  availableTenants: Organization[]
+  setCurrentTenant: (tenant: Organization | null) => Promise<void>
+  isLoading: boolean
 }
 
 const TenantContext = createContext<TenantContextType | undefined>(undefined)
 
-// Static tenant data until API is ready
-const staticTenants = [
-  { id: "1", name: "Organization One" },
-  { id: "2", name: "Organization Two" },
-  { id: "3", name: "Organization Three" },
-]
-
 export function TenantProvider({ children }: { children: React.ReactNode }) {
-  const [currentTenant, setCurrentTenant] = useState<Tenant | null>(null)
+  const [currentTenant, setCurrentTenant] = useState<Organization | null>(null)
+  const [availableTenants, setAvailableTenants] = useState<Organization[]>([])
+  const [isLoading, setIsLoading] = useState(true)
+  const router = useRouter()
+
+  useEffect(() => {
+    loadInitialData()
+  }, [])
+
+  const loadInitialData = async () => {
+    try {
+      // Load available tenants (using mock data for now)
+      setAvailableTenants(mockOrganizations)
+
+      // Load current tenant from storage
+      const storedTenant = localStorage.getItem("currentTenant")
+      if (storedTenant) {
+        setCurrentTenant(JSON.parse(storedTenant))
+      }
+    } catch (error) {
+      console.error("Failed to load tenant data:", error)
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  const handleSetCurrentTenant = async (tenant: Organization | null) => {
+    try {
+      if (tenant) {
+        // Store in localStorage
+        localStorage.setItem("currentTenant", JSON.stringify(tenant))
+        // Set cookie for middleware
+        document.cookie = `currentTenantId=${tenant.id}; path=/`
+        setCurrentTenant(tenant)
+      } else {
+        // Clear tenant data
+        localStorage.removeItem("currentTenant")
+        document.cookie = "currentTenantId=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT"
+        setCurrentTenant(null)
+      }
+    } catch (error) {
+      console.error("Failed to set tenant:", error)
+      throw new Error("Failed to set tenant")
+    }
+  }
 
   return (
     <TenantContext.Provider
       value={{
         currentTenant,
-        availableTenants: staticTenants,
-        setCurrentTenant,
+        availableTenants,
+        setCurrentTenant: handleSetCurrentTenant,
+        isLoading,
       }}
     >
       {children}
@@ -41,7 +77,7 @@ export function TenantProvider({ children }: { children: React.ReactNode }) {
   )
 }
 
-export const useTenantContext = () => {
+export function useTenantContext() {
   const context = useContext(TenantContext)
   if (context === undefined) {
     throw new Error("useTenantContext must be used within a TenantProvider")

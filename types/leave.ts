@@ -8,12 +8,12 @@ export interface LeaveRequest {
     status: "pending" | "approved" | "rejected"
     created_at: string
     updated_at: string
-    days: number
-    employee: {
-      first_name: string
-      last_name: string
-      avatar?: string
-    }
+    total_days: number
+    // employee: {
+    //   first_name: string
+    //   last_name: string
+    //   avatar?: string
+    // }
   }
   
   export interface LeaveBalance {
@@ -33,6 +33,20 @@ export interface LeaveRequest {
     start_date: string
     end_date: string
     reason: string
+    total_days: number
+    status: "pending" | "approved" | "rejected"
+    organization_id: string
+  }
+
+  export interface LeaveType {
+    id: string
+    name: string
+    organization_id: string
+    default_days: number
+    is_paid: boolean,
+    requires_approval: boolean,
+    min_days_notice: number,
+    max_days_per_request: number
   }
   
   

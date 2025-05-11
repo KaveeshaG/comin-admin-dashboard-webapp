@@ -9,11 +9,13 @@ export interface LoginCredentials {
     token_type: string
     expires_in: number
     organization_id: string
+    role: string
   }
   
   export interface AuthUser {
     accessToken: string
     organizationId: string
+    role: string
     isAuthenticated: boolean
   }
   

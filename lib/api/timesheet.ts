@@ -74,7 +74,6 @@ export async function getTimesheetStats(start_date?: Date, end_date?: Date): Pro
 }
 
 export async function exportTimesheet(entries: TimeEntry[]): Promise<string> {
-  // Convert entries to CSV format
   const headers = [
     "Date",
     "Employee ID",

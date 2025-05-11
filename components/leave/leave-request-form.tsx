@@ -16,9 +16,10 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { useToast } from "@/components/ui/use-toast"
 import { createLeaveRequest } from "@/lib/api/leave"
 import { getEmployees } from "@/lib/api/employees"
-import type { LeaveType } from "@/types/employee"
+import type { LeaveType } from "@/types/leave"
 import type { Employee } from "@/types/employee"
 import { EmployeeCombobox } from "@/components/employees/employee-combobox"
+import { useAuth } from "@/providers/auth-provider"
 
 const leaveRequestSchema = z.object({
   employee_id: z.string({
@@ -45,12 +46,13 @@ export function LeaveRequestForm({ leaveTypes, onSuccess }: LeaveRequestFormProp
   const [isLoading, setIsLoading] = useState(false)
   const [employees, setEmployees] = useState<Employee[]>([])
   const { toast } = useToast()
+  const { user } = useAuth()
 
   const form = useForm<z.infer<typeof leaveRequestSchema>>({
     resolver: zodResolver(leaveRequestSchema),
   })
 
-  const { watch } = form
+  const { watch, setValue } = form
   const startDate = watch("start_date")
   const endDate = watch("end_date")
 
@@ -80,17 +82,25 @@ export function LeaveRequestForm({ leaveTypes, onSuccess }: LeaveRequestFormProp
   async function onSubmit(data: z.infer<typeof leaveRequestSchema>) {
     setIsLoading(true)
     try {
-      await createLeaveRequest({
-        employee_id: data.employee_id,
-        leave_type_id: data.leave_type_id,
-        start_date: data.start_date.toISOString(),
-        end_date: data.end_date.toISOString(),
-        reason: data.reason,
-      })
+      if (user) {
+        const organizationId = user.organizationId
+        const totalDays = calculateDays()
+        const status = user.role === "admin" ? "approved" : "pending";
+        await createLeaveRequest(organizationId, {
+          employee_id: data.employee_id,
+          leave_type_id: data.leave_type_id,
+          start_date: data.start_date.toISOString(),
+          end_date: data.end_date.toISOString(),
+          reason: data.reason,
+          total_days: totalDays,
+          status: status,
+          organization_id: organizationId,
+        });
+      }
       toast({
         title: "Success",
         description: "Leave request submitted successfully",
-      })
+      });
       onSuccess()
     } catch (error) {
       toast({

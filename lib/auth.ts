@@ -7,6 +7,7 @@ interface LoginResponse {
   token_type: string
   expires_in: number
   organization_id: string
+  role: string
 }
 
 export const authOptions: NextAuthOptions = {
@@ -42,6 +43,7 @@ export const authOptions: NextAuthOptions = {
             accessToken: data.access_token,
             refreshToken: data.refresh_token,
             expiresIn: data.expires_in,
+            role: data.role
           }
         } catch (error) {
           console.error("Auth error:", error)

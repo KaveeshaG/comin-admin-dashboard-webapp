@@ -41,26 +41,26 @@ export function TeamMemberForm({ teamId, employees, departments, existingMembers
     },
   })
 
-  // Filter out employees who are already team members
   const availableEmployees = employees.filter((emp) => !existingMembers.includes(emp.id))
 
   async function handleSubmit(data: TeamMemberFormValues) {
     setIsLoading(true)
     try {
-      await onSubmit(data)
-      form.reset()
+      const response = await onSubmit(data);
+      form.reset();
       toast({
         title: "Success",
         description: "Team member added successfully",
-      })
+      });
     } catch (error) {
+      console.error("Error details:", error);
       toast({
         title: "Error",
         description: "Failed to add team member",
         variant: "destructive",
-      })
+      });
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
   }
 
