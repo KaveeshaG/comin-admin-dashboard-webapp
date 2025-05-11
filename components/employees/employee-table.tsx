@@ -1,7 +1,7 @@
 "use client"
-
+ 
 import type React from "react"
-
+ 
 import { useState } from "react"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { DropdownMenuItem } from "@/components/ui/dropdown-menu"
@@ -24,12 +24,14 @@ import {
   Download,
   UserX,
   UserCheck,
+  QrCode,
 } from "lucide-react"
 import { format } from "date-fns"
 import { Checkbox } from "@/components/ui/checkbox"
 import type { Employee } from "@/types/employee"
 import { DeleteEmployeeDialog } from "./delete-employee-dialog"
-
+import { EmployeeQRModal } from "./employee-qr-modal"
+ 
 interface EmployeeTableProps {
   employees: Employee[]
   onEdit: (employee: Employee) => void
@@ -46,7 +48,7 @@ interface EmployeeTableProps {
   sortField?: keyof Employee
   sortDirection?: "asc" | "desc"
 }
-
+ 
 export function EmployeeTable({
   employees,
   onEdit,
@@ -65,7 +67,9 @@ export function EmployeeTable({
 }: EmployeeTableProps) {
   const [employeeToDelete, setEmployeeToDelete] = useState<Employee | null>(null)
   const [selectedEmployees, setSelectedEmployees] = useState<Set<string>>(new Set())
-
+  const [qrModalOpen, setQrModalOpen] = useState(false)
+  const [selectedEmployeeForQR, setSelectedEmployeeForQR] = useState<Employee | null>(null)
+ 
   const getWorkTypeColor = (workType: string) => {
     switch (workType) {
       case "Full-Time":
@@ -78,18 +82,18 @@ export function EmployeeTable({
         return "bg-gray-500"
     }
   }
-
+ 
   const totalPages = Math.ceil(totalItems / pageSize)
   const startItem = (page - 1) * pageSize + 1
   const endItem = Math.min(page * pageSize, totalItems)
-
+ 
   const SortButton = ({ field, children }: { field: keyof Employee; children: React.ReactNode }) => (
     <Button variant="ghost" onClick={() => onSort(field)} className="hover:bg-transparent">
       {children}
       <ArrowUpDown className={`ml-2 h-4 w-4 ${sortField === field ? "opacity-100" : "opacity-40"}`} />
     </Button>
   )
-
+ 
   const toggleAll = () => {
     if (selectedEmployees.size === employees.length) {
       setSelectedEmployees(new Set())
@@ -97,7 +101,7 @@ export function EmployeeTable({
       setSelectedEmployees(new Set(employees.map((emp) => emp.id)))
     }
   }
-
+ 
   const toggleEmployee = (employeeId: string) => {
     const newSelected = new Set(selectedEmployees)
     if (newSelected.has(employeeId)) {
@@ -107,7 +111,7 @@ export function EmployeeTable({
     }
     setSelectedEmployees(newSelected)
   }
-
+ 
   return (
     <>
       {selectedEmployees.size > 0 && (
@@ -143,7 +147,7 @@ export function EmployeeTable({
           </Button>
         </div>
       )}
-
+ 
       <div className="rounded-md border">
         <Table>
           <TableHeader>
@@ -186,7 +190,10 @@ export function EmployeeTable({
                 <TableCell className="font-medium">
                   <div className="flex items-center gap-3">
                     <Avatar className="h-8 w-8">
-                      <AvatarImage src={employee.avatar} alt={`${employee.first_name} ${employee.last_name}`} />
+                      <AvatarImage
+                        src={employee.avatar || "/placeholder.svg"}
+                        alt={`${employee.first_name} ${employee.last_name}`}
+                      />
                       <AvatarFallback>
                         {employee.first_name[0]}
                         {employee.last_name[0]}
@@ -224,6 +231,15 @@ export function EmployeeTable({
                         <Pencil className="mr-2 h-4 w-4" />
                         Edit
                       </DropdownMenuItem>
+                      <DropdownMenuItem
+                        onClick={() => {
+                          setSelectedEmployeeForQR(employee)
+                          setQrModalOpen(true)
+                        }}
+                      >
+                        <QrCode className="mr-2 h-4 w-4" />
+                        Download QR
+                      </DropdownMenuItem>
                       <DropdownMenuItem className="text-red-600" onClick={() => setEmployeeToDelete(employee)}>
                         <Trash2 className="mr-2 h-4 w-4" />
                         Delete
@@ -236,7 +252,7 @@ export function EmployeeTable({
           </TableBody>
         </Table>
       </div>
-
+ 
       <div className="flex items-center justify-between px-2 py-4">
         <p className="text-sm text-muted-foreground">
           Showing {startItem} to {endItem} of {totalItems} entries
@@ -252,7 +268,7 @@ export function EmployeeTable({
           </Button>
         </div>
       </div>
-
+ 
       <DeleteEmployeeDialog
         open={!!employeeToDelete}
         onOpenChange={(open) => !open && setEmployeeToDelete(null)}
@@ -264,7 +280,17 @@ export function EmployeeTable({
         }}
         employeeName={employeeToDelete ? `${employeeToDelete.first_name} ${employeeToDelete.last_name}` : ""}
       />
+ 
+      {selectedEmployeeForQR && (
+        <EmployeeQRModal
+          open={qrModalOpen}
+          onOpenChange={setQrModalOpen}
+          employeeName={`${selectedEmployeeForQR.first_name} ${selectedEmployeeForQR.last_name}`}
+          employeeId={selectedEmployeeForQR.id}
+          qrCodeData={selectedEmployeeForQR.qr_code}
+        />
+      )}
     </>
   )
 }
-
+ 

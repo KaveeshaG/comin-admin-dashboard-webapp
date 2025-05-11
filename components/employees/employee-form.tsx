@@ -1,5 +1,5 @@
 "use client"
-
+ 
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { useForm } from "react-hook-form"
@@ -21,7 +21,8 @@ import { useAuth } from "@/providers/auth-provider"
 import type { Employee, Department } from "@/types/employee"
 import type { LeaveType } from "@/types/leave"
 import { listDepartments } from "@/lib/api/departments"
-
+ 
+// Define the schema for validation
 const employeeSchema = z.object({
   organization_id: z.string(),
   department_id: z.string({
@@ -44,13 +45,13 @@ const employeeSchema = z.object({
   }),
   leave_total_days: z.number().min(0),
 })
-
+ 
 type EmployeeFormValues = z.infer<typeof employeeSchema>
-
+ 
 interface EmployeeFormProps {
   employee?: Employee
 }
-
+ 
 export function EmployeeForm({ employee }: EmployeeFormProps) {
   const [isLoading, setIsLoading] = useState(false)
   const [departments, setDepartments] = useState<Department[]>([])
@@ -58,7 +59,11 @@ export function EmployeeForm({ employee }: EmployeeFormProps) {
   const router = useRouter()
   const { toast } = useToast()
   const { user } = useAuth()
-
+ 
+  // Debug: Log the employee prop to verify data
+  console.log("Employee prop received:", employee)
+ 
+  // Setup form with default values
   const form = useForm<EmployeeFormValues>({
     resolver: zodResolver(employeeSchema),
     defaultValues: employee
@@ -66,6 +71,9 @@ export function EmployeeForm({ employee }: EmployeeFormProps) {
           ...employee,
           date_of_birth: new Date(employee.date_of_birth),
           hire_date: new Date(employee.hire_date),
+          organization_id: employee.organization_id || user?.organizationId || "",
+          leave_type_id: employee.leave_type_id || "",
+          leave_total_days: employee.leave_total_days || 20,
         }
       : {
           organization_id: user?.organizationId || "",
@@ -74,14 +82,40 @@ export function EmployeeForm({ employee }: EmployeeFormProps) {
           hire_date: new Date(),
         },
   })
-
+ 
   useEffect(() => {
-    if (user?.organizationId) {
-      listDepartments(user.organizationId).then(setDepartments)
-      getLeaveTypes(user.organizationId).then(setLeaveTypes)
+    const organizationId = user?.organizationId || (employee?.organization_id || "")
+    if (organizationId) {
+      listDepartments(organizationId)
+        .then(deptData => {
+          console.log("Departments loaded:", deptData)
+          setDepartments(deptData)
+        })
+        .catch(err => {
+          console.error("Error loading departments:", err)
+          toast({
+            title: "Error",
+            description: "Failed to load departments",
+            variant: "destructive",
+          })
+        })
+      
+      getLeaveTypes(organizationId)
+        .then(typeData => {
+          console.log("Leave types loaded:", typeData)
+          setLeaveTypes(typeData)
+        })
+        .catch(err => {
+          console.error("Error loading leave types:", err)
+          toast({
+            title: "Error",
+            description: "Failed to load leave types",
+            variant: "destructive",
+          })
+        })
     }
-  }, [user?.organizationId])
-
+  }, [user?.organizationId, employee?.organization_id, toast])
+ 
   async function onSubmit(data: EmployeeFormValues) {
     setIsLoading(true)
     try {
@@ -90,23 +124,27 @@ export function EmployeeForm({ employee }: EmployeeFormProps) {
         date_of_birth: data.date_of_birth.toISOString(),
         hire_date: data.hire_date.toISOString(),
       }
-
+ 
       if (employee) {
-        await updateEmployee(employee.id, formattedData)
+        const updatedEmployee = await updateEmployee(employee.id, formattedData)
         toast({
           title: "Success",
           description: "Employee updated successfully",
         })
       } else {
-        await createEmployee(formattedData)
+        const newEmployee = await createEmployee(formattedData)
         toast({
           title: "Success",
           description: "Employee created successfully",
         })
       }
+      
+      sessionStorage.removeItem('editEmployee')
+      
       router.push("/dashboard/employees")
       router.refresh()
     } catch (error) {
+      console.error("Error in form submission:", error)
       toast({
         title: "Error",
         description: "Something went wrong. Please try again.",
@@ -116,7 +154,7 @@ export function EmployeeForm({ employee }: EmployeeFormProps) {
       setIsLoading(false)
     }
   }
-
+ 
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
@@ -134,7 +172,7 @@ export function EmployeeForm({ employee }: EmployeeFormProps) {
               </FormItem>
             )}
           />
-
+ 
           <FormField
             control={form.control}
             name="last_name"
@@ -148,7 +186,7 @@ export function EmployeeForm({ employee }: EmployeeFormProps) {
               </FormItem>
             )}
           />
-
+ 
           <FormField
             control={form.control}
             name="email"
@@ -162,7 +200,7 @@ export function EmployeeForm({ employee }: EmployeeFormProps) {
               </FormItem>
             )}
           />
-
+ 
           <FormField
             control={form.control}
             name="phone"
@@ -176,7 +214,7 @@ export function EmployeeForm({ employee }: EmployeeFormProps) {
               </FormItem>
             )}
           />
-
+ 
           <FormField
             control={form.control}
             name="employee_id"
@@ -190,7 +228,7 @@ export function EmployeeForm({ employee }: EmployeeFormProps) {
               </FormItem>
             )}
           />
-
+ 
           <FormField
             control={form.control}
             name="department_id"
@@ -215,7 +253,7 @@ export function EmployeeForm({ employee }: EmployeeFormProps) {
               </FormItem>
             )}
           />
-
+ 
           <FormField
             control={form.control}
             name="work_type"
@@ -238,7 +276,7 @@ export function EmployeeForm({ employee }: EmployeeFormProps) {
               </FormItem>
             )}
           />
-
+ 
           <FormField
             control={form.control}
             name="date_of_birth"
@@ -271,7 +309,7 @@ export function EmployeeForm({ employee }: EmployeeFormProps) {
               </FormItem>
             )}
           />
-
+ 
           <FormField
             control={form.control}
             name="hire_date"
@@ -304,7 +342,7 @@ export function EmployeeForm({ employee }: EmployeeFormProps) {
               </FormItem>
             )}
           />
-
+ 
           <FormField
             control={form.control}
             name="leave_type_id"
@@ -329,7 +367,7 @@ export function EmployeeForm({ employee }: EmployeeFormProps) {
               </FormItem>
             )}
           />
-
+ 
           <FormField
             control={form.control}
             name="leave_total_days"
@@ -344,7 +382,7 @@ export function EmployeeForm({ employee }: EmployeeFormProps) {
             )}
           />
         </div>
-
+ 
         <div className="flex gap-4">
           <Button type="submit" disabled={isLoading}>
             {isLoading ? "Saving..." : employee ? "Update Employee" : "Create Employee"}
@@ -357,4 +395,4 @@ export function EmployeeForm({ employee }: EmployeeFormProps) {
     </Form>
   )
 }
-
+ 
