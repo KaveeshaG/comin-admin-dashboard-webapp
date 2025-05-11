@@ -12,8 +12,9 @@ export interface Employee {
   work_type: "Full-Time" | "Part-Time" | "Contract"
   leave_type_id: string
   leave_total_days: number
+  qr_code?: string
 }
-
+ 
 export interface Department {
   id: string
   name: string
@@ -21,7 +22,7 @@ export interface Department {
   description: string,
   status: string
 }
-
+ 
 export interface CreateEmployeeDto {
   organization_id: string
   department_id: string
@@ -36,9 +37,11 @@ export interface CreateEmployeeDto {
   leave_type_id: string
   leave_total_days: number
 }
-
+ 
 export interface EmployeeFilters {
   department_id?: string
   work_type?: string
   search?: string
 }
+ 
+ 
