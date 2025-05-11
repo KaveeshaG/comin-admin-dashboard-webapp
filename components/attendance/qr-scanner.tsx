@@ -1,23 +1,26 @@
 "use client"
-
+ 
 import { useState, useEffect, useCallback, useRef } from "react"
 import { Html5Qrcode } from "html5-qrcode"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Button } from "@/components/ui/button"
 import { Scan, AlertCircle } from "lucide-react"
-
-interface QRScannerProps {
-  onScan: (data: string) => void
-  onError: (error: Error) => void
-}
-
-export function QRScanner({ onScan, onError }: QRScannerProps) {
+import { AttendanceForm } from "./attendance-form"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { checkIn, checkOut } from "@/lib/api/attendance"
+import { useToast } from "@/components/ui/use-toast"
+import type { CheckInRequest, CheckOutRequest } from "@/types/attendance"
+ 
+export function QRScanner() {
   const [isScanning, setIsScanning] = useState(false)
   const [lastError, setLastError] = useState<string>("")
+  const [scannedQRCode, setScannedQRCode] = useState<string | null>(null)
+  const [activeTab, setActiveTab] = useState<"check_in" | "check_out">("check_in")
   const scannerRef = useRef<Html5Qrcode | null>(null)
   const containerRef = useRef<HTMLDivElement>(null)
-
+  const { toast } = useToast()
+ 
   const stopScanner = useCallback(async () => {
     if (scannerRef.current?.isScanning) {
       await scannerRef.current.stop()
@@ -25,29 +28,30 @@ export function QRScanner({ onScan, onError }: QRScannerProps) {
     }
     setIsScanning(false)
   }, [])
-
+ 
   useEffect(() => {
     // Cleanup on unmount
     return () => {
       stopScanner()
     }
   }, [stopScanner])
-
+ 
   const startScanning = async () => {
     try {
       setLastError("")
       setIsScanning(true)
-
+      setScannedQRCode(null)
+ 
       // Wait for next tick to ensure DOM is ready
       await new Promise((resolve) => setTimeout(resolve, 0))
-
+ 
       const container = document.getElementById("qr-scanner-container")
       if (!container) {
         throw new Error("Scanner container not found")
       }
-
+ 
       scannerRef.current = new Html5Qrcode("qr-scanner-container")
-
+ 
       await scannerRef.current.start(
         { facingMode: "environment" },
         {
@@ -56,8 +60,7 @@ export function QRScanner({ onScan, onError }: QRScannerProps) {
           aspectRatio: 1,
         },
         (decodedText) => {
-          console.log("QR Code detected:", decodedText)
-          onScan(decodedText)
+          setScannedQRCode(decodedText)
           stopScanner()
         },
         (errorMessage) => {
@@ -71,10 +74,52 @@ export function QRScanner({ onScan, onError }: QRScannerProps) {
       console.error("Scanner error:", error)
       setLastError(error instanceof Error ? error.message : "Failed to start scanner")
       setIsScanning(false)
-      onError(error instanceof Error ? error : new Error("Failed to start scanner"))
+      toast({
+        title: "Scan Error",
+        description: error instanceof Error ? error.message : "Failed to start scanner",
+        variant: "destructive",
+      })
     }
   }
-
+ 
+  const handleCheckIn = async (data: CheckInRequest) => {
+    try {
+      await checkIn(data)
+      toast({
+        title: "Success",
+        description: "Check-in recorded successfully",
+      })
+      setScannedQRCode(null)
+    } catch (error) {
+      console.error("Error during check-in:", error)
+      toast({
+        title: "Error",
+        description: "Failed to record check-in",
+        variant: "destructive",
+      })
+      throw error
+    }
+  }
+ 
+  const handleCheckOut = async (data: CheckOutRequest) => {
+    try {
+      await checkOut(data)
+      toast({
+        title: "Success",
+        description: "Check-out recorded successfully",
+      })
+      setScannedQRCode(null)
+    } catch (error) {
+      console.error("Error during check-out:", error)
+      toast({
+        title: "Error",
+        description: "Failed to record check-out",
+        variant: "destructive",
+      })
+      throw error
+    }
+  }
+ 
   return (
     <Card>
       <CardHeader>
@@ -82,7 +127,34 @@ export function QRScanner({ onScan, onError }: QRScannerProps) {
         <CardDescription>Scan employee QR code to mark attendance</CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
-        {!isScanning ? (
+        {scannedQRCode ? (
+          <div className="space-y-4">
+            <Alert>
+              <AlertCircle className="h-4 w-4" />
+              <AlertTitle>QR Code Scanned</AlertTitle>
+              <AlertDescription>QR code scanned successfully. Please complete the form below.</AlertDescription>
+            </Alert>
+ 
+            <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as "check_in" | "check_out")}>
+              <TabsList className="grid w-full grid-cols-2">
+                <TabsTrigger value="check_in">Check In</TabsTrigger>
+                <TabsTrigger value="check_out">Check Out</TabsTrigger>
+              </TabsList>
+ 
+              <TabsContent value="check_in">
+                <AttendanceForm type="check_in" onSubmit={handleCheckIn} qrCode={scannedQRCode} />
+              </TabsContent>
+ 
+              <TabsContent value="check_out">
+                <AttendanceForm type="check_out" onSubmit={handleCheckOut} qrCode={scannedQRCode} />
+              </TabsContent>
+            </Tabs>
+ 
+            <Button variant="outline" onClick={() => setScannedQRCode(null)} className="w-full">
+              Scan Another QR Code
+            </Button>
+          </div>
+        ) : !isScanning ? (
           <Button onClick={startScanning} className="w-full">
             <Scan className="mr-2 h-4 w-4" />
             Start Scanning
@@ -97,7 +169,7 @@ export function QRScanner({ onScan, onError }: QRScannerProps) {
                 className="w-full h-full relative"
                 style={{ minHeight: "300px" }}
               />
-
+ 
               {/* Scanning overlay */}
               <div className="absolute inset-0 z-10 pointer-events-none">
                 <div className="absolute inset-0 border-2 border-primary opacity-50" />
@@ -109,14 +181,14 @@ export function QRScanner({ onScan, onError }: QRScannerProps) {
                 </div>
               </div>
             </div>
-
+ 
             {/* Scanning feedback */}
             <Alert variant={lastError ? "destructive" : "default"}>
               <AlertCircle className="h-4 w-4" />
               <AlertTitle>{lastError ? "Scanning Error" : "Scanning in progress"}</AlertTitle>
               <AlertDescription>{lastError || "Position the QR code within the frame to scan"}</AlertDescription>
             </Alert>
-
+ 
             {/* Debug info in development */}
             {process.env.NODE_ENV === "development" && lastError && (
               <Alert variant="default" className="text-xs">
@@ -124,7 +196,7 @@ export function QRScanner({ onScan, onError }: QRScannerProps) {
                 <AlertDescription className="font-mono break-all">{lastError}</AlertDescription>
               </Alert>
             )}
-
+ 
             <Button variant="outline" onClick={stopScanner} className="w-full">
               Cancel Scanning
             </Button>
@@ -134,4 +206,4 @@ export function QRScanner({ onScan, onError }: QRScannerProps) {
     </Card>
   )
 }
-
+ 
