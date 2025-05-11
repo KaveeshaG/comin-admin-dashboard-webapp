@@ -1,26 +1,8 @@
-import { cn } from "@/lib/utils"
-import { Loader2 } from "lucide-react"
- 
-interface LoadingSpinnerProps {
-  size?: "sm" | "md" | "lg"
-  className?: string
-}
- 
-export function LoadingSpinner({ size = "md", className }: LoadingSpinnerProps) {
-  const sizeClasses = {
-    sm: "h-4 w-4",
-    md: "h-6 w-6",
-    lg: "h-10 w-10",
-  }
- 
-  return <Loader2 className={cn("animate-spin text-primary", sizeClasses[size], className)} />
-}
- 
 import type React from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { cn } from "@/lib/utils"
 import { Skeleton } from "@/components/ui/skeleton"
- 
+
 interface StatsCardProps {
   title: string
   value: string | number
@@ -34,7 +16,7 @@ interface StatsCardProps {
   loading?: boolean
   className?: string
 }
- 
+
 export function StatsCard({ title, value, icon, description, trend, loading, className }: StatsCardProps) {
   if (loading) {
     return (
@@ -52,7 +34,7 @@ export function StatsCard({ title, value, icon, description, trend, loading, cla
       </Card>
     )
   }
- 
+
   return (
     <Card className={cn("transition-all hover:bg-muted/50", className)}>
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -102,5 +84,3 @@ export function StatsCard({ title, value, icon, description, trend, loading, cla
     </Card>
   )
 }
- 
- 
