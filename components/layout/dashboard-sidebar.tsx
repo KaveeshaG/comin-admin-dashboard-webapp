@@ -1,5 +1,5 @@
 "use client"
-
+ 
 import { Building2, Users, Calendar, Clock, FileText, CreditCard, BarChart, LogOut } from "lucide-react"
 import { usePathname } from "next/navigation"
 import Link from "next/link"
@@ -17,11 +17,11 @@ import {
   SidebarMenuItem,
 } from "@/components/ui/sidebar"
 import { useAuth } from "@/providers/auth-provider"
-
+ 
 export function DashboardSidebar() {
   const pathname = usePathname()
   const { logout } = useAuth()
-
+ 
   const menuItems = [
     {
       title: "Dashboard",
@@ -53,18 +53,18 @@ export function DashboardSidebar() {
       icon: FileText,
       href: "/dashboard/timesheet",
     },
-    {
-      title: "Billing",
-      icon: CreditCard,
-      href: "/dashboard/billing",
-    },
+    // {
+    //   title: "Billing",
+    //   icon: CreditCard,
+    //   href: "/dashboard/billing",
+    // },
     {
       title: "Reports",
       icon: BarChart,
       href: "/dashboard/reports",
     },
   ]
-
+ 
   return (
     <Sidebar variant="inset" className="border-r bg-sidebar">
       <SidebarHeader className="border-b border-border/10 p-4">
@@ -103,4 +103,3 @@ export function DashboardSidebar() {
     </Sidebar>
   )
 }
-
