@@ -1,7 +1,6 @@
 "use client"
-
+ 
 import type React from "react"
-
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
@@ -11,7 +10,9 @@ import { useToast } from "@/components/ui/use-toast"
 import { login } from "@/lib/api/auth"
 import { useAuth } from "@/providers/auth-provider"
 import { LoadingSpinner } from "@/components/loading-spinner"
-
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
+import { LockKeyhole, Mail } from "lucide-react"
+ 
 export default function LoginPage() {
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
@@ -19,17 +20,17 @@ export default function LoginPage() {
   const router = useRouter()
   const { toast } = useToast()
   const { login: setAuth, user, isLoading: isAuthLoading } = useAuth()
-
+ 
   useEffect(() => {
     if (user?.isAuthenticated) {
       router.replace("/dashboard")
     }
   }, [user, router])
-
+ 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsLoading(true)
-
+ 
     try {
       const response = await login({ email, password })
       if (response.access_token && response.organization_id) {
@@ -49,69 +50,111 @@ export default function LoginPage() {
       setIsLoading(false)
     }
   }
-
+ 
   // Show loading state while checking authentication
   if (isAuthLoading) {
-    return <LoadingSpinner />
+    return (
+      <div className="flex h-screen items-center justify-center">
+        <LoadingSpinner size="lg" />
+      </div>
+    )
   }
-
+ 
   // Redirect if user is already authenticated
   if (user?.isAuthenticated) {
     return null
   }
-
+ 
   return (
-    <div className="flex h-screen items-center justify-center">
-      <div className="w-full max-w-md space-y-8">
-        <div>
-          <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">Sign in to your account</h2>
+    <div className="flex min-h-screen flex-col items-center justify-center bg-gradient-to-b from-background to-muted/50 p-4">
+      <div className="w-full max-w-md">
+        <div className="mb-8 flex flex-col items-center">
+          <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-primary/10">
+            <span className="text-3xl font-bold text-primary">CI</span>
+          </div>
+          <h1 className="text-3xl font-bold tracking-tight text-foreground">ComIn</h1>
+          <p className="text-sm text-muted-foreground">HR Management System</p>
         </div>
-        <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
-          <div className="rounded-md shadow-sm -space-y-px">
-            <div>
-              <Label htmlFor="email-address" className="sr-only">
-                Email address
-              </Label>
-              <Input
-                id="email-address"
-                name="email"
-                type="email"
-                autoComplete="email"
-                required
-                className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-t-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
-                placeholder="Email address"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                disabled={isLoading}
-              />
-            </div>
-            <div>
-              <Label htmlFor="password" className="sr-only">
-                Password
-              </Label>
-              <Input
-                id="password"
-                name="password"
-                type="password"
-                autoComplete="current-password"
-                required
-                className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-b-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
-                placeholder="Password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                disabled={isLoading}
-              />
-            </div>
-          </div>
-
-          <div>
-            <Button type="submit" className="w-full" disabled={isLoading}>
-              {isLoading ? "Signing in..." : "Sign in"}
-            </Button>
-          </div>
-        </form>
+ 
+        <Card className="border-border/40 shadow-lg">
+          <CardHeader>
+            <CardTitle className="text-xl">Sign in to your account</CardTitle>
+            <CardDescription>Enter your credentials to access the dashboard</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="email" className="text-sm font-medium">
+                  Email
+                </Label>
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 flex items-center pl-3 text-muted-foreground">
+                    <Mail className="h-4 w-4" />
+                  </div>
+                  <Input
+                    id="email"
+                    type="email"
+                    placeholder="name@company.com"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    className="pl-10"
+                    required
+                    disabled={isLoading}
+                  />
+                </div>
+              </div>
+ 
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="password" className="text-sm font-medium">
+                    Password
+                  </Label>
+                  <Button variant="link" className="h-auto p-0 text-xs" type="button">
+                    Forgot password?
+                  </Button>
+                </div>
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 flex items-center pl-3 text-muted-foreground">
+                    <LockKeyhole className="h-4 w-4" />
+                  </div>
+                  <Input
+                    id="password"
+                    type="password"
+                    placeholder="••••••••"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    className="pl-10"
+                    required
+                    disabled={isLoading}
+                  />
+                </div>
+              </div>
+ 
+              <Button type="submit" className="w-full" disabled={isLoading}>
+                {isLoading ? (
+                  <>
+                    <LoadingSpinner className="mr-2" size="sm" /> Signing in...
+                  </>
+                ) : (
+                  "Sign in"
+                )}
+              </Button>
+            </form>
+          </CardContent>
+          <CardFooter className="flex justify-center border-t p-4">
+            <p className="text-xs text-muted-foreground">
+              By signing in, you agree to our{" "}
+              <Button variant="link" className="h-auto p-0 text-xs">
+                Terms of Service
+              </Button>{" "}
+              and{" "}
+              <Button variant="link" className="h-auto p-0 text-xs">
+                Privacy Policy
+              </Button>
+            </p>
+          </CardFooter>
+        </Card>
       </div>
     </div>
   )
 }
-
